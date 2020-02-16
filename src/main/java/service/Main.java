@@ -181,21 +181,4 @@ public class Main extends ResourceConfig {
     }
 
 
-
-    @GET
-    @Path("/carta")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getCartass(){
-        //int i = MySQLHelper.addJugador("joanet31", "Joan", "Manera Perez", "123456789");
-        return getGSON().toJson(repartirCartas());
-    }
-
-    @GET
-    @Path("/uuid")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getUUIDJson(){
-        return getGSON().toJson(Lib.getUUID());
-    }
-
-
 }
