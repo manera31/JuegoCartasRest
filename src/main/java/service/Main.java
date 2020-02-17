@@ -155,8 +155,6 @@ public class Main extends ResourceConfig {
             cartas1[i] = cartaArrayList.get(i);
         }
 
-
-
         int contadorCartas = cartas1.length-1;
         int posicion;
         Carta cartaRandom, ultima;
@@ -172,9 +170,7 @@ public class Main extends ResourceConfig {
 
             contadorCartas--;
         }
-        
-        int contadorCartas = cartas1.length-1;
-        int posicion;
+
         for (int i = 0 ; i < 6 ; i++){
             posicion = Lib.getRandom(contadorCartas, 0); // Lo mismo
             cartaRandom = cartas1[posicion];

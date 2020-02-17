@@ -6,7 +6,11 @@
     </artifacts-to-build>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c2704d46-7f92-45e1-8a92-3ef829e3ba42" name="Default Changelist" comment="" />
+    <list default="true" id="c2704d46-7f92-45e1-8a92-3ef829e3ba42" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/service/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/service/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/service/MySQLHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/service/MySQLHelper.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -51,6 +55,7 @@
     </option>
   </component>
   <component name="ProjectId" id="1XnGKPtO06bFk8tPw4d4qVQGN2L" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
@@ -58,6 +63,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/src/main/java" />
@@ -185,6 +191,8 @@
       <workItem from="1581674383135" duration="13746000" />
       <workItem from="1581794214284" duration="9358000" />
       <workItem from="1581848291795" duration="10698000" />
+      <workItem from="1581886566483" duration="1300000" />
+      <workItem from="1581929656534" duration="2626000" />
     </task>
     <servers />
   </component>

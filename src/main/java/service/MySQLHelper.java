@@ -32,7 +32,7 @@ public class MySQLHelper {
 
     public static Connection getConnection(){
         if (connection == null){
-            connection = new MySQLHelper();
+            new MySQLHelper();
         }
         return connection;
     }
@@ -61,7 +61,7 @@ public class MySQLHelper {
 
     public static int addJugador(String nombreUsuario, String nombre, String apellidos, String password){
         /* Comprueba si existe el nombre de usuario, si no el login no funcionara bien */
-        final String query = " INSERT INTO jugadores VALUES (?, ?, ?, ?)";
+        final String query = "INSERT INTO jugadores VALUES (?, ?, ?, ?)";
         PreparedStatement preparedStatement;
         boolean isCorrecto = false;
 
