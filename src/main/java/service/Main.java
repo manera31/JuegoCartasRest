@@ -15,12 +15,6 @@ import java.util.UUID;
 
 @Path("/mirest")
 public class Main extends ResourceConfig {
-
-    public static final String USER_PASS_FAIL = "-1";
-    public static final String IS_ALREADY_CONNECTED = "-2";
-    public static final String NOT_FOUND = "-3";
-    public static final String EXPIRED_SESSION = "-4";
-
     private static Gson g = null;
     private static ArrayList<Sesion> sesiones = null;
     private static ArrayList<Carta> cartas = null;
@@ -64,14 +58,14 @@ public class Main extends ResourceConfig {
                 }
             }
             if (estaConectado){
-                idSesion = IS_ALREADY_CONNECTED;
+                idSesion = Error.User.IS_ALREADY_CONNECTED;
             } else {
                 idSesion = Lib.getUUID();
                 getSesiones().add(new Sesion(idSesion, user));
             }
 
         } else {
-            idSesion = USER_PASS_FAIL;
+            idSesion = Error.User.USER_PASS_FAIL;
         }
 
         return getGSON().toJson(idSesion);
@@ -101,7 +95,7 @@ public class Main extends ResourceConfig {
         String idGame;
         if (encontrado){
             if (isCaducado){
-                idGame = EXPIRED_SESSION;
+                idGame = Error.Session.EXPIRED_SESSION;
             } else {
                 idGame = Lib.getUUID();
                 for (Sesion s: getSesiones()){
@@ -112,7 +106,7 @@ public class Main extends ResourceConfig {
 
             }
         } else {
-            idGame = NOT_FOUND;
+            idGame = Error.Session.NOT_FOUND;
         }
 
         return getGSON().toJson(idGame);
@@ -152,6 +146,7 @@ public class Main extends ResourceConfig {
         int posicion;
         Carta cartaRandom, ultima;
         for (int i = 0 ; i < 6 ; i++){
+
             posicion = Lib.getRandom(contadorCartas, 0);
             cartaRandom = cartas1[posicion];
             cartasJugador.add(cartaRandom);

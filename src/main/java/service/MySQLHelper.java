@@ -38,25 +38,29 @@ public class MySQLHelper {
     }
 
     public static boolean login(String user, String pass){
+        final String query = "SELECT * FROM jugadores WHERE nombre_usuario = ?";
+        final String query2 = "SELECT CASE WHEN EXISTS(SELECT * FROM jugadores WHERE nombre_usuario = ? AND pass = ?) THEN 1 ELSE 0 END AS result FROM jugadores";
         PreparedStatement preparedStatement;
         boolean isCorrecto = false;
         try {
-            preparedStatement = getConnection().prepareStatement("SELECT * FROM jugadores WHERE nombre_usuario = '" + user + "'");
+            preparedStatement = getConnection().prepareStatement(query2);
+            preparedStatement.setString(1, user);
+            preparedStatement.setString(2, Lib.encryptPassword(pass));
             ResultSet resultSet = preparedStatement.executeQuery();
             resultSet.first();
-            String passSHA1 = resultSet.getString("pass");
-            if(passSHA1.equals(Lib.encryptPassword(pass))){
+
+            int result = resultSet.getInt("result");
+            if (result == 1){
                 isCorrecto = true;
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         }
         return isCorrecto;
     }
 
     public static int addJugador(String nombreUsuario, String nombre, String apellidos, String password){
-        final String query = " INSERT INTO jugadores VALUES (?, ?, ?, ?)";
+        final String query = " INSERT INTO jugadores (nombre_usuario, nombre, apellidos, pass) VALUES (?, ?, ?, ?)";
         PreparedStatement preparedStatement;
         boolean isCorrecto = false;
 
