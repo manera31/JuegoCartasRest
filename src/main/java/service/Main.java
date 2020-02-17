@@ -13,13 +13,20 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.UUID;
 
-@Path("/mirest")
+/* Aqui seria mejor que separaseis por clases cada uno de los modelos del API */
+/* Por ejemplo: cartaApi.java -> Endpoints para cartas */
+/* Por ejemplo: partidaApi.java -> Endpoints para partida */
+/* Por ejemplo: sesionApi.java -> Endpoints para sesion */
+
+@Path("/mirest") // Mejor cambiarle el nombre a esto
 public class Main extends ResourceConfig {
 
+    /* Esto mejor meterlo en una clase Errores para que los demás puedan acceder */
     public static final String USER_PASS_FAIL = "-1";
     public static final String IS_ALREADY_CONNECTED = "-2";
     public static final String NOT_FOUND = "-3";
     public static final String EXPIRED_SESSION = "-4";
+    /* Hasta aqui */
 
     private static Gson g = null;
     private static ArrayList<Sesion> sesiones = null;
@@ -137,6 +144,7 @@ public class Main extends ResourceConfig {
         salida.start();
     }*/
 
+    /* Revisa bien este algoritmo que no me termina de cuadrar, si quieres lo vemos juntos */
     private Object repartirCartas(){
         ArrayList<Carta> cartasJugador = new ArrayList<>();
         ArrayList<Carta> cartasCPU = new ArrayList<>();
@@ -148,11 +156,12 @@ public class Main extends ResourceConfig {
         }
 
 
+
         int contadorCartas = cartas1.length-1;
         int posicion;
         Carta cartaRandom, ultima;
         for (int i = 0 ; i < 6 ; i++){
-            posicion = Lib.getRandom(contadorCartas, 0);
+            posicion = Lib.getRandom(contadorCartas, 0); // Puede repetir cartas
             cartaRandom = cartas1[posicion];
             cartasJugador.add(cartaRandom);
 
@@ -163,9 +172,11 @@ public class Main extends ResourceConfig {
 
             contadorCartas--;
         }
-
+        
+        int contadorCartas = cartas1.length-1;
+        int posicion;
         for (int i = 0 ; i < 6 ; i++){
-            posicion = Lib.getRandom(contadorCartas, 0);
+            posicion = Lib.getRandom(contadorCartas, 0); // Lo mismo
             cartaRandom = cartas1[posicion];
             cartasCPU.add(cartaRandom);
 

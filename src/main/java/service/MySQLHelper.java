@@ -32,7 +32,7 @@ public class MySQLHelper {
 
     public static Connection getConnection(){
         if (connection == null){
-            new MySQLHelper();
+            connection = new MySQLHelper();
         }
         return connection;
     }
@@ -41,6 +41,10 @@ public class MySQLHelper {
         PreparedStatement preparedStatement;
         boolean isCorrecto = false;
         try {
+            /* Comprueba siempre contra BDD */
+            /* La pass siempre te llega en SHA1 desde el cliente */
+            /* SELECT COUNT(*) FROM jugadores WHERE nombre_usuario = '[NOMBRE]' and pass = '[EN_SHA1]' */
+            /* Obten el total y a partir de ahi sigues */
             preparedStatement = getConnection().prepareStatement("SELECT * FROM jugadores WHERE nombre_usuario = '" + user + "'");
             ResultSet resultSet = preparedStatement.executeQuery();
             resultSet.first();
@@ -56,6 +60,7 @@ public class MySQLHelper {
     }
 
     public static int addJugador(String nombreUsuario, String nombre, String apellidos, String password){
+        /* Comprueba si existe el nombre de usuario, si no el login no funcionara bien */
         final String query = " INSERT INTO jugadores VALUES (?, ?, ?, ?)";
         PreparedStatement preparedStatement;
         boolean isCorrecto = false;
@@ -67,7 +72,7 @@ public class MySQLHelper {
             preparedStatement.setString(3, apellidos);
             preparedStatement.setString(4, Lib.encryptPassword(password));
             preparedStatement.execute();
-            return 0;
+            return 0; /* Coge los errores de una clase diferente si no te montarás un lio */
         } catch (SQLIntegrityConstraintViolationException sqle){
             sqle.printStackTrace();
             return 1;
@@ -81,6 +86,11 @@ public class MySQLHelper {
         Carta carta = null;
         PreparedStatement preparedStatement;
         try {
+            /* El uso de PreparedStatement aqui no tiene logica */
+            /* Facilitas la injeccion SQL */
+            /*
+            preparedStatement = getConnection().prepareStatement("SELECT * FROM cartas WHERE id_carta = ? ");
+            */
             preparedStatement = getConnection().prepareStatement("SELECT * FROM cartas WHERE id_carta = "+idABuscar);
             ResultSet rs = preparedStatement.executeQuery();
             rs.first();
