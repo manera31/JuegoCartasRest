@@ -1,4 +1,4 @@
-package main.java.modelos.respuesta;
+package main.java.respuestas;
 
 import main.java.modelos.Carta;
 
