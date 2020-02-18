@@ -14,6 +14,11 @@ public class RespuestaLogin {
         this.codigoError = codigoError;
     }
 
+    public RespuestaLogin(String idSesion, int codigoError) {
+        this.idSesion = idSesion;
+        this.codigoError = codigoError;
+    }
+
     public RespuestaLogin() {
     }
 
