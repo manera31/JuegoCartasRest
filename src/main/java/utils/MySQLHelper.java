@@ -1,4 +1,4 @@
-package main.java.service;
+package main.java.utils;
 
 import main.java.modelos.Carta;
 

@@ -2,16 +2,17 @@ package main.java.service;
 
 import com.google.gson.Gson;
 import main.java.modelos.Carta;
-import main.java.modelos.Partida;
 import main.java.modelos.Sesion;
+import main.java.modelos.respuesta.RespuestaLogin;
+import main.java.modelos.respuesta.RespuestaNuevoJuego;
+import main.java.utils.Error;
+import main.java.utils.Lib;
+import main.java.utils.MySQLHelper;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.sql.*;
 import java.util.ArrayList;
-import java.util.UUID;
 
 @Path("/mirest")
 public class PartidaApi extends ResourceConfig {
@@ -45,35 +46,40 @@ public class PartidaApi extends ResourceConfig {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public String login(String json){
+
         String userPass = getGSON().fromJson(json, String.class);
         String user = userPass.split(":")[0];
         String pass = userPass.split(":")[1];
 
-        String idSesion;
+        RespuestaLogin respuesta;
         boolean estaConectado = false;
+
         if (MySQLHelper.login(user, pass)){
+
             for (Sesion s: getSesiones()){
                 if(s.getUser().equals(user) && !s.isSesionCaducada()){
                     estaConectado = true;
+                    //TODO Eliminar las sesiones que esten caducadas.
                 }
             }
+
             if (estaConectado){
-                idSesion = Error.User.IS_ALREADY_CONNECTED;
+                respuesta = new RespuestaLogin(Error.Login.USER_IS_ALREADY_CONNECTED);
             } else {
-                idSesion = Lib.getUUID();
+                String idSesion = Lib.getUUID();
+                respuesta = new RespuestaLogin(idSesion);
                 getSesiones().add(new Sesion(idSesion, user));
             }
 
         } else {
-            idSesion = Error.User.USER_PASS_FAIL;
+            respuesta = new RespuestaLogin(Error.Login.USER_PASS_FAIL);
         }
 
-        return getGSON().toJson(idSesion);
-
+        return getGSON().toJson(respuesta);
     }
 
     @GET
-    @Path("/newGame")
+    @Path("/crearJuego")
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public String newGame(String json){
@@ -91,88 +97,27 @@ public class PartidaApi extends ResourceConfig {
             }
         }
 
-
-        String idGame;
+        String idPartida;
+        ArrayList<Carta> cartasJugador;
+        RespuestaNuevoJuego respuesta = null;
         if (encontrado){
             if (isCaducado){
-                idGame = Error.Session.EXPIRED_SESSION;
+                respuesta = new RespuestaNuevoJuego(Error.Session.EXPIRED_SESSION);
             } else {
-                idGame = Lib.getUUID();
                 for (Sesion s: getSesiones()){
                     if (s.getIdSesion().equals(idSesion) && !s.isSesionCaducada()){
-                        s.setIdGame(idGame);
+                        idPartida = s.crearPartida();
+                        cartasJugador = s.getPartida().repartirCartas();
+                        respuesta = new RespuestaNuevoJuego(idPartida, cartasJugador);
                     }
                 }
 
             }
         } else {
-            idGame = Error.Session.NOT_FOUND;
+            respuesta = new RespuestaNuevoJuego(Error.Session.NOT_FOUND);
         }
 
-        return getGSON().toJson(idGame);
-    }
-
-    /*private void setSesionTimeout(final String sesion){
-        Thread salida = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(MINUTOS_TIMEOUT_SESION * 60000);
-                    for (Sesion s: getSesiones()){
-                        if(s.getIdSesion().equals(sesion)){
-                            s.setSesionCaducada(true);
-                        }
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        salida.start();
-    }*/
-
-    private Object repartirCartas(){
-        ArrayList<Carta> cartasJugador = new ArrayList<>();
-        ArrayList<Carta> cartasCPU = new ArrayList<>();
-
-        ArrayList<Carta> cartaArrayList = getCartas();
-        Carta[] cartas1 = new Carta[cartaArrayList.size()];
-        for (int i = 0 ; i < cartas1.length ; i++){
-            cartas1[i] = cartaArrayList.get(i);
-        }
-
-
-        int contadorCartas = cartas1.length-1;
-        int posicion;
-        Carta cartaRandom, ultima;
-        for (int i = 0 ; i < 6 ; i++){
-
-            posicion = Lib.getRandom(contadorCartas, 0);
-            cartaRandom = cartas1[posicion];
-            cartasJugador.add(cartaRandom);
-
-            ultima = cartas1[contadorCartas];
-
-            cartas1[contadorCartas] = cartaRandom;
-            cartas1[posicion] = ultima;
-
-            contadorCartas--;
-        }
-
-        for (int i = 0 ; i < 6 ; i++){
-            posicion = Lib.getRandom(contadorCartas, 0);
-            cartaRandom = cartas1[posicion];
-            cartasCPU.add(cartaRandom);
-
-            ultima = cartas1[contadorCartas];
-
-            cartas1[contadorCartas] = cartaRandom;
-            cartas1[posicion] = ultima;
-
-            contadorCartas--;
-        }
-
-        return new Object[]{cartasJugador, cartasCPU};
+        return getGSON().toJson(respuesta);
     }
 
 
