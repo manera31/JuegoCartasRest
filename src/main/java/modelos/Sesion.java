@@ -12,6 +12,7 @@ public class Sesion {
         this.idSesion = idSesion;
         this.user = user;
         this.sesionCaducada = false;
+        partida = null;
     }
 
     public String getIdSesion() {

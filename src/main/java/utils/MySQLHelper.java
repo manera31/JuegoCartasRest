@@ -14,6 +14,7 @@ public class MySQLHelper {
     private String username = "root";
     private String password = "";
     private static Connection connection = null;
+    private static ArrayList<Carta> cartas = null;
     /*
     TABLE cartas(id_carta integer PRIMARY KEY, marca varchar(50), modelo varchar(50), motor integer, potencia integer, velocidad integer, cilindros integer, rpm integer, consumo float);
     TABLE jugadores(nombre_usuario varchar(50) PRIMARY KEY, nombre varchar(50), appellidos varchar (50), pass varchar(100));
@@ -82,40 +83,34 @@ public class MySQLHelper {
     }
 
     public static Carta buscarCarta(int idABuscar){
-        Carta carta = null;
-        PreparedStatement preparedStatement;
-        try {
-            preparedStatement = getConnection().prepareStatement("SELECT * FROM cartas WHERE id_carta = "+idABuscar);
-            ResultSet rs = preparedStatement.executeQuery();
-            rs.first();
-            carta = new Carta(rs.getInt("id_carta"), rs.getString("marca"), rs.getString("modelo"),
-                    rs.getInt("motor"), rs.getInt("potencia"), rs.getInt("velocidad"),
-                    rs.getInt("cilindros"), rs.getInt("rpm"), rs.getDouble("consumo"));
-            rs.close();
-            preparedStatement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
+
+        for (Carta c: getCartas()){
+            if (c.getId() == idABuscar){
+                return c;
+            }
         }
 
-        return carta;
+        return null;
 
     }
 
     public static ArrayList<Carta> getCartas(){
-        ArrayList<Carta> cartas = new ArrayList<>();
+        if (cartas == null) {
+            cartas = new ArrayList<>();
 
-        PreparedStatement preparedStatement;
-        try {
-            preparedStatement = getConnection().prepareStatement("SELECT * FROM cartas");
-            ResultSet rs = preparedStatement.executeQuery();
-            while (rs.next())
-            cartas.add(new Carta(rs.getInt("id_carta"), rs.getString("marca"), rs.getString("modelo"),
-                    rs.getInt("motor"), rs.getInt("potencia"), rs.getInt("velocidad"),
-                    rs.getInt("cilindros"), rs.getInt("rpm"), rs.getDouble("consumo")));
-            rs.close();
-            preparedStatement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
+            PreparedStatement preparedStatement;
+            try {
+                preparedStatement = getConnection().prepareStatement("SELECT * FROM cartas");
+                ResultSet rs = preparedStatement.executeQuery();
+                while (rs.next())
+                    cartas.add(new Carta(rs.getInt("id_carta"), rs.getString("marca"), rs.getString("modelo"),
+                            rs.getInt("motor"), rs.getInt("potencia"), rs.getInt("velocidad"),
+                            rs.getInt("cilindros"), rs.getInt("rpm"), rs.getDouble("consumo")));
+                rs.close();
+                preparedStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
 
         return cartas;
