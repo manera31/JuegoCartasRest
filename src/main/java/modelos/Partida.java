@@ -4,29 +4,14 @@ import java.util.ArrayList;
 
 public class Partida {
     private String idGame;
-    private ArrayList<Carta> cartas;
+    private ArrayList<Carta> cartasCPU;
+    private int manoActual;
 
-    public Partida(String idGame, ArrayList<Carta> cartas) {
+    public Partida(String idGame) {
         this.idGame = idGame;
-        this.cartas = cartas;
+        this.cartasCPU = new ArrayList<>();
+        this.manoActual = 1;
     }
 
-    public Partida() {
-    }
 
-    public String getIdGame() {
-        return idGame;
-    }
-
-    public void setIdGame(String idGame) {
-        this.idGame = idGame;
-    }
-
-    public ArrayList<Carta> getCartas() {
-        return cartas;
-    }
-
-    public void setCartas(ArrayList<Carta> cartas) {
-        this.cartas = cartas;
-    }
 }

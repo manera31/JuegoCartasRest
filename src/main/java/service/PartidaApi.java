@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 @Path("/mirest")
-public class Main extends ResourceConfig {
+public class PartidaApi extends ResourceConfig {
     private static Gson g = null;
     private static ArrayList<Sesion> sesiones = null;
     private static ArrayList<Carta> cartas = null;

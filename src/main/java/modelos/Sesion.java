@@ -1,16 +1,19 @@
 package main.java.modelos;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
 public class Sesion {
     private String idSesion;
     private String user;
     private boolean sesionCaducada;
-    private String idGame;
+    private ArrayList<Partida> partidas;
 
     public Sesion(String idSesion, String user) {
         this.idSesion = idSesion;
         this.user = user;
         this.sesionCaducada = false;
-        this.idGame = "";
+        this.partidas = new ArrayList<>();
     }
 
     public String getIdSesion() {
@@ -29,11 +32,4 @@ public class Sesion {
         this.sesionCaducada = sesionCaducada;
     }
 
-    public String getIdGame() {
-        return idGame;
-    }
-
-    public void setIdGame(String idGame) {
-        this.idGame = idGame;
-    }
 }
