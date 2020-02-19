@@ -2,7 +2,6 @@ package main.java.service;
 
 import com.google.gson.Gson;
 import main.java.modelos.Carta;
-import main.java.modelos.Partida;
 import main.java.modelos.Sesion;
 import main.java.respuestas.*;
 import main.java.utils.*;
@@ -62,7 +61,7 @@ public class PartidaApi extends ResourceConfig {
 
             if (estaConectado){
                 // Si el usuario tiene una sesión activa le pasamos la idSesion que tiene y una alerta para indicar que el usuario ya estaba conectado.
-                respuesta = new RespuestaLogin(sesionAuxiliar.getIdSesion(), Alert.Login.USER_IS_ALREADY_CONNECTED);
+                respuesta = new RespuestaLogin(sesionAuxiliar.getIdSesion(), Alerta.Login.USER_IS_ALREADY_CONNECTED);
             } else {
                 // Crea un id único.
                 String idSesion = Lib.getUUID();
@@ -205,7 +204,27 @@ public class PartidaApi extends ResourceConfig {
         RespuestaJugarCartaJugador respuesta = null;
         for(Sesion s: getSesiones()){
             if (s.getIdSesion().equals(idSesion) && !s.isSesionCaducada() && s.getPartida().getIdPartida().equals(idPartida)){
-                respuesta = s.getPartida().jugarCartaJugador(idCarta, caracteristica);
+                respuesta = s.getPartida().compararCartaJugador(idCarta, caracteristica);
+            }
+        }
+
+        return getGSON().toJson(respuesta);
+    }
+
+    @GET
+    @Path("/clienteListo")
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public String clienteListo(String json){
+        // Separa la idSesion y la idPartida.
+        String idSesionPartida = getGSON().fromJson(json, String.class);
+        String idSesion = idSesionPartida.split(":")[0];
+        String idPartida = idSesionPartida.split(":")[1];
+
+        RespuestaJugarCartaCPU respuesta = null;
+        for(Sesion s: getSesiones()){
+            if (s.getIdSesion().equals(idSesion) && !s.isSesionCaducada() && s.getPartida().getIdPartida().equals(idPartida)){
+                respuesta = s.getPartida().jugarCartaCPU();
             }
         }
 

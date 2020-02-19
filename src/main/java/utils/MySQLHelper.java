@@ -39,7 +39,6 @@ public class MySQLHelper {
     }
 
     public static boolean login(String user, String pass){
-        final String query = "SELECT * FROM jugadores WHERE nombre_usuario = ?";
         final String query2 = "SELECT CASE WHEN EXISTS(SELECT * FROM jugadores WHERE nombre_usuario = ? AND pass = ?) THEN 1 ELSE 0 END AS result FROM jugadores";
         PreparedStatement preparedStatement;
         boolean isCorrecto = false;
@@ -82,18 +81,6 @@ public class MySQLHelper {
         }
     }
 
-    public static Carta buscarCarta(int idABuscar){
-
-        for (Carta c: getCartas()){
-            if (c.getId() == idABuscar){
-                return c;
-            }
-        }
-
-        return null;
-
-    }
-
     public static ArrayList<Carta> getCartas(){
         if (cartas == null) {
             cartas = new ArrayList<>();
@@ -114,5 +101,17 @@ public class MySQLHelper {
         }
 
         return cartas;
+    }
+
+    public static Carta buscarCarta(int idABuscar){
+
+        for (Carta c: getCartas()){
+            if (c.getId() == idABuscar){
+                return c;
+            }
+        }
+
+        return null;
+
     }
 }
