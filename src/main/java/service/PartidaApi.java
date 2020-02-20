@@ -91,6 +91,18 @@ public class PartidaApi extends ResourceConfig {
         boolean encontrado = false;
         boolean isCaducado = false;
 
+        /**
+        Llevate esto al modelo Sesion. Intenta no recorrer todas las sesiones, computacionalmente es muy caro.
+        Crea un nuevo metodo en Sesion.java que compruebe si existe la sesion con id idSesion, es más efectivo
+        Para devolver los dos valores en una funcion: encontrado y isCaducado utliza codigos de error
+        Posibles casos que yo entiendo: Sesion correcta y valida, Sesion correcta pero caducada, Sesion incorrecta
+        Puede ser que olvide alguno, segun vuestros requerimientos
+        IS_ENCONTRADO_OK = 0001
+        IS_ENCONTRADO_IS_CADUCADO = 0002
+        NO_ENCONTRADO = 0003
+        ... Y lo que necesites. Tienes una clase para Errores, usala
+        Y luego con un switch comprueba
+        */
         // Comprueba si la idSesion se encuentra dentro de las sesiones conectadas y si esta caducada o no.
         for (Sesion s: getSesiones()){
             if (s.getIdSesion().equals(idSesion)){
