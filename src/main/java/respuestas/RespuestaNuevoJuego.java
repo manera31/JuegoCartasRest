@@ -9,10 +9,10 @@ public class RespuestaNuevoJuego {
     private ArrayList<Carta> cartasJugador;
     private int codigoError;
 
-    public RespuestaNuevoJuego(String idPartida, ArrayList<Carta> cartasJugador) {
+    public RespuestaNuevoJuego(String idPartida, ArrayList<Carta> cartasJugador, int codigoError) {
         this.idPartida = idPartida;
         this.cartasJugador = cartasJugador;
-        codigoError = 0;
+        this.codigoError = codigoError;
     }
 
     public RespuestaNuevoJuego(int codigoError) {

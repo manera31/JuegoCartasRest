@@ -11,6 +11,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+@Path("/estadisticas")
 public class EstadisticasApi {
     @GET
     @Path("/ranking")

@@ -13,7 +13,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 
-@Path("/mirest")
+@Path("/partida")
 public class PartidaApi extends ResourceConfig {
     private static Gson g = null;
     private static ArrayList<Sesion> sesiones = null;
@@ -117,7 +117,7 @@ public class PartidaApi extends ResourceConfig {
                         cartasJugador = s.getPartida().repartirCartas();
 
                         // Crea la respuesta pasandole la idPartida que se acaba de crear y las cartas del jugador.
-                        respuesta = new RespuestaNuevoJuego(idPartida, cartasJugador);
+                        respuesta = new RespuestaNuevoJuego(idPartida, cartasJugador, Acierto.Sesion.ENCONTRADO);
                     }
                 }
                 break;
