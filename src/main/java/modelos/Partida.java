@@ -8,19 +8,26 @@ import main.java.utils.MySQLHelper;
 
 import java.util.ArrayList;
 
-public class Partida {private String idPartida;
+public class Partida {
+    private String idPartida;
+    private Usuario usuario;
     public static int NUMERO_CARTAS_POR_JUGADOR = 6;
     private Carta[] cartasCPU;
     private int manoActual;
     private Enums.PrimeroEnSacar empieza;
     private RespuestaJugarCartaCPU cartaJugadaCPU;
+    private int contadorManosGanadasJugador;
+    private int contadorManosGanadasCPU;
 
-    public Partida(String idPartida) {
+    public Partida(String idPartida, Usuario user) {
         this.idPartida = idPartida;
+        this.usuario = user;
         cartasCPU = null;
         manoActual = 0;
         empieza = null;
         cartaJugadaCPU = null;
+        contadorManosGanadasJugador = 0;
+        contadorManosGanadasCPU = 0;
     }
 
     public String getIdPartida() {
@@ -106,70 +113,83 @@ public class Partida {private String idPartida;
                 case MOTOR:
                     if(cartaJugador.getMotor() > cartaCPU.getMotor()){
                         idCartaGanadora = idCartaJugador;
+                        contadorManosGanadasJugador++;
                     } else if(cartaJugador.getMotor() == cartaCPU.getMotor()) {
                         idCartaGanadora = 0;
                     } else {
                         idCartaGanadora = cartaCPU.getId();
+                        contadorManosGanadasCPU++;
                     }
                     break;
                 case POTENCIA:
                     if(cartaJugador.getPotencia() > cartaCPU.getPotencia()){
                         idCartaGanadora = idCartaJugador;
+                        contadorManosGanadasJugador++;
                     } else if(cartaJugador.getPotencia() == cartaCPU.getPotencia()) {
                         idCartaGanadora = 0;
                     } else {
                         idCartaGanadora = cartaCPU.getId();
+                        contadorManosGanadasCPU++;
                     }
                     break;
                 case VELOCIDAD:
                     if(cartaJugador.getVelocidad() > cartaCPU.getVelocidad()){
                         idCartaGanadora = idCartaJugador;
+                        contadorManosGanadasJugador++;
                     } else if(cartaJugador.getVelocidad() == cartaCPU.getVelocidad()) {
                         idCartaGanadora = 0;
                     } else {
                         idCartaGanadora = cartaCPU.getId();
+                        contadorManosGanadasCPU++;
                     }
                     break;
                 case CILINDROS:
                     if(cartaJugador.getCilindros() > cartaCPU.getCilindros()){
                         idCartaGanadora = idCartaJugador;
+                        contadorManosGanadasJugador++;
                     } else if(cartaJugador.getCilindros() == cartaCPU.getCilindros()) {
                         idCartaGanadora = 0;
                     } else {
                         idCartaGanadora = cartaCPU.getId();
+                        contadorManosGanadasCPU++;
                     }
                     break;
                 case RPM:
                     if(cartaJugador.getRpm() < cartaCPU.getRpm()){
                         idCartaGanadora = idCartaJugador;
+                        contadorManosGanadasJugador++;
                     } else if(cartaJugador.getRpm() == cartaCPU.getRpm()) {
                         idCartaGanadora = 0;
                     } else {
                         idCartaGanadora = cartaCPU.getId();
+                        contadorManosGanadasCPU++;
                     }
                     break;
                 case CONSUMO:
                     if(cartaJugador.getConsumo() < cartaCPU.getConsumo()){
                         idCartaGanadora = idCartaJugador;
+                        contadorManosGanadasJugador++;
                     } else if(cartaJugador.getConsumo() == cartaCPU.getConsumo()) {
                         idCartaGanadora = 0;
                     } else {
                         idCartaGanadora = cartaCPU.getId();
+                        contadorManosGanadasCPU++;
                     }
                     break;
             }
         }
 
-        manoActual++;
+        MySQLHelper.insertarManoJugada(idCartaJugador, cartaCPU.getId(), caracteristica, idCartaGanadora);
 
-        // -1 si una carta no se ha encontrado
+        if (manoActual < NUMERO_CARTAS_POR_JUGADOR){
+            manoActual++;
+        } else {
+            MySQLHelper.insertarResultadoPartida(idPartida, usuario.getNick(), contadorManosGanadasJugador, contadorManosGanadasCPU);
+        }
+
         // 0 si es empate
         // idCarta si ha ganado
-        if (cartaCPU != null) {
-            return new RespuestaJugarCartaJugador(idCartaJugador, cartaCPU.getId(), caracteristica, idCartaGanadora);
-        } else {
-            return new RespuestaJugarCartaJugador(idCartaJugador, -1, caracteristica, idCartaGanadora);
-        }
+        return new RespuestaJugarCartaJugador(idCartaJugador, cartaCPU.getId(), caracteristica, idCartaGanadora);
     }
 
     public RespuestaJugarCartaCPU jugarCartaCPU(){

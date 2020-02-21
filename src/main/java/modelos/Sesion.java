@@ -4,11 +4,11 @@ import main.java.utils.Lib;
 
 public class Sesion {
     private String idSesion;
-    private String user;
+    private Usuario user;
     private boolean sesionCaducada;
     private Partida partida;
 
-    public Sesion(String idSesion, String user) {
+    public Sesion(String idSesion, Usuario user) {
         this.idSesion = idSesion;
         this.user = user;
         this.sesionCaducada = false;
@@ -19,7 +19,7 @@ public class Sesion {
         return idSesion;
     }
 
-    public String getUser() {
+    public Usuario getUser() {
         return user;
     }
 
@@ -33,7 +33,7 @@ public class Sesion {
 
     public String crearPartida(){
         String idPartida = Lib.getUUID();
-        partida = new Partida(idPartida);
+        partida = new Partida(idPartida, user);
         return idPartida;
     }
 

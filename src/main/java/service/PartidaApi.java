@@ -3,6 +3,7 @@ package main.java.service;
 import com.google.gson.Gson;
 import main.java.modelos.Carta;
 import main.java.modelos.Sesion;
+import main.java.modelos.Usuario;
 import main.java.respuestas.*;
 import main.java.utils.*;
 import main.java.utils.Error;
@@ -31,7 +32,7 @@ public class PartidaApi extends ResourceConfig {
         return sesiones;
     }
 
-    @GET
+    @POST
     @Path("/login")
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
@@ -44,15 +45,16 @@ public class PartidaApi extends ResourceConfig {
 
         RespuestaLogin respuesta;
 
-        // Si la función loguin devuelve true es que el usuario y la contraseña coinciden en la base de datos.
-        if (MySQLHelper.login(user, pass)){
+        // La función devuelve el usuario si es correcto o null si no.
+        Usuario usuario = MySQLHelper.login(user, pass);
+        if (usuario != null){
 
             Sesion sesionAuxiliar = null;
             boolean estaConectado = false;
 
             // Comprueba si el usuario tiene una sesión activa.
             for (Sesion s: getSesiones()){
-                if(s.getUser().equals(user) && !s.isSesionCaducada()){
+                if(s.getUser().getNick().equals(user) && !s.isSesionCaducada()){
                     estaConectado = true;
                     sesionAuxiliar = s;
                     //TODO Eliminar las sesiones que esten caducadas.
@@ -61,25 +63,25 @@ public class PartidaApi extends ResourceConfig {
 
             if (estaConectado){
                 // Si el usuario tiene una sesión activa le pasamos la idSesion que tiene y una alerta para indicar que el usuario ya estaba conectado.
-                respuesta = new RespuestaLogin(sesionAuxiliar.getIdSesion(), Alerta.Login.USER_IS_ALREADY_CONNECTED);
+                respuesta = new RespuestaLogin(sesionAuxiliar.getIdSesion(), usuario, Alerta.Login.YA_CONECTADO);
             } else {
                 // Crea un id único.
                 String idSesion = Lib.getUUID();
                 // Crea la respuesta.
-                respuesta = new RespuestaLogin(idSesion);
+                respuesta = new RespuestaLogin(idSesion, usuario, Acierto.Login.ENCONTRADO);
                 // Añade el id de sesión al array de sesiones.
-                getSesiones().add(new Sesion(idSesion, user));
+                getSesiones().add(new Sesion(idSesion, usuario));
             }
 
         } else {
             // Si no coincide el usuario y la contraseña en la base de datos envia un mensaje de error.
-            respuesta = new RespuestaLogin(Error.Login.USER_PASS_FAIL);
+            respuesta = new RespuestaLogin(Error.Login.USUARIO_PASS_INCORRECTO);
         }
 
         return getGSON().toJson(respuesta);
     }
 
-    @GET
+    @POST
     @Path("/crearJuego")
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
@@ -88,27 +90,22 @@ public class PartidaApi extends ResourceConfig {
         // Cargamos la id de sesión que pasa el cliente.
         String idSesion = getGSON().fromJson(json, String.class);
 
-        boolean encontrado = false;
-        boolean isCaducado = false;
-
-        // Comprueba si la idSesion se encuentra dentro de las sesiones conectadas y si esta caducada o no.
-        for (Sesion s: getSesiones()){
-            if (s.getIdSesion().equals(idSesion)){
-                encontrado = true;
-                if (s.isSesionCaducada()){
-                    isCaducado = true;
-                }
-            }
-        }
+        int respuestaBusqueda = comprobarSesion(idSesion);
 
         String idPartida;
         ArrayList<Carta> cartasJugador;
         RespuestaNuevoJuego respuesta = null;
-        if (encontrado){
-            if (isCaducado){
+
+        switch (respuestaBusqueda){
+            case Error.Sesion.CADUCADA:
                 // Si la sesión existe pero esta caducada envia un mensaje de error.
-                respuesta = new RespuestaNuevoJuego(Error.Sesion.EXPIRED_SESSION);
-            } else {
+                respuesta = new RespuestaNuevoJuego(Error.Sesion.CADUCADA);
+                break;
+            case Error.Sesion.NO_ENCONTRADA:
+                // Si la sesion no existe evia un mensaje de error.
+                respuesta = new RespuestaNuevoJuego(Error.Sesion.NO_ENCONTRADA);
+                break;
+            case Acierto.Sesion.ENCONTRADO:
                 // Si la sesion existe y NO esta caducada.
                 // Busca la sesión.
                 for (Sesion s: getSesiones()){
@@ -123,17 +120,13 @@ public class PartidaApi extends ResourceConfig {
                         respuesta = new RespuestaNuevoJuego(idPartida, cartasJugador);
                     }
                 }
-
-            }
-        } else {
-            // Si la sesion no existe evia un mensaje de error.
-            respuesta = new RespuestaNuevoJuego(Error.Sesion.NOT_FOUND);
+                break;
         }
 
         return getGSON().toJson(respuesta);
     }
 
-    @GET
+    @POST
     @Path("/sortearInicio")
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
@@ -143,53 +136,40 @@ public class PartidaApi extends ResourceConfig {
         String idSesion = idSesionPartida.split(":")[0];
         String idPartida = idSesionPartida.split(":")[1];
 
-        boolean sesionEncontrada = false;
-        boolean partidaEncontrada = false;
-        boolean sesionCaducada = false;
-        // Comprueba si existe la sesión, esta activa o no y si existe la partida.
-        for(Sesion s: getSesiones()){
-            if (s.getIdSesion().equals(idSesion)){
-                sesionEncontrada = true;
-                if (s.isSesionCaducada()){
-                    sesionCaducada = true;
-                }
-                if (s.getPartida().getIdPartida().equals(idPartida)){
-                    partidaEncontrada = true;
-                }
-            }
-        }
+        int respuestaBusqueda = comprobarPartida(idSesion, idPartida);
 
         RespuestaSorteo respuesta = null;
         Enums.PrimeroEnSacar empieza = null;
-        if (sesionEncontrada){
-            if (!sesionCaducada){
-                if(partidaEncontrada){
-                    for(Sesion s: getSesiones()){
-                        if (s.getIdSesion().equals(idSesion) && !s.isSesionCaducada() && s.getPartida().getIdPartida().equals(idPartida)){
-                            // Si los datos coinciden sortea quien empieza. El metodo devuelve un enum (Jugador o CPU).
-                            empieza = s.getPartida().sortearInicio();
 
-                            // Crea la respuesta a partir de quien empieza.
-                            respuesta = new RespuestaSorteo(empieza);
-                        }
+        switch (respuestaBusqueda){
+            case Error.Sesion.CADUCADA:
+                // Si la sesión existe pero esta caducada envia un mensaje de error.
+                respuesta = new RespuestaSorteo(Error.Sesion.CADUCADA);
+                break;
+            case Error.Sesion.NO_ENCONTRADA:
+                // Si la sesion no existe evia un mensaje de error.
+                respuesta = new RespuestaSorteo(Error.Sesion.NO_ENCONTRADA);
+                break;
+            case Error.Partida.NO_ENCONTRADA:
+                respuesta = new RespuestaSorteo(Error.Partida.NO_ENCONTRADA);
+                break;
+            case Acierto.Partida.ENCONTRADA:
+                for(Sesion s: getSesiones()){
+                    if (s.getIdSesion().equals(idSesion) && !s.isSesionCaducada() && s.getPartida().getIdPartida().equals(idPartida)){
+                        // Si los datos coinciden sortea quien empieza. El metodo devuelve un enum (Jugador o CPU).
+                        empieza = s.getPartida().sortearInicio();
+
+                        // Crea la respuesta a partir de quien empieza.
+                        respuesta = new RespuestaSorteo(empieza);
                     }
-                } else {
-                    // Si la idPartida no existe devuelve un error.
-                    respuesta = new RespuestaSorteo(Error.Partida.NO_ENCONTRADA);
                 }
-            } else {
-                // Si la sesión esta caducada devuelve un error.
-                respuesta = new RespuestaSorteo(Error.Sesion.EXPIRED_SESSION);
-            }
-        } else {
-            // Si no se encuentra la sesión devuelve un error.
-            respuesta = new RespuestaSorteo(Error.Sesion.NOT_FOUND);
+                break;
         }
 
         return getGSON().toJson(respuesta);
     }
 
-    @GET
+    @POST
     @Path("/jugarCarta")
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
@@ -211,7 +191,7 @@ public class PartidaApi extends ResourceConfig {
         return getGSON().toJson(respuesta);
     }
 
-    @GET
+    @POST
     @Path("/clienteListo")
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
@@ -230,5 +210,61 @@ public class PartidaApi extends ResourceConfig {
 
         return getGSON().toJson(respuesta);
     }
+
+    private int comprobarSesion(String idSesion){
+        boolean encontrado = false;
+        boolean isCaducado = false;
+        for (Sesion s: getSesiones()){
+            if (s.getIdSesion().equals(idSesion)){
+                encontrado = true;
+                if (s.isSesionCaducada()){
+                    isCaducado = true;
+                }
+            }
+        }
+
+        if (encontrado){
+            if (isCaducado){
+                return Error.Sesion.CADUCADA;
+            } else {
+                return Acierto.Sesion.ENCONTRADO;
+            }
+        } else {
+            return Error.Sesion.NO_ENCONTRADA;
+        }
+    }
+    private int comprobarPartida(String idSesion, String idPartida){
+        boolean encontrado = false;
+        boolean isCaducado = false;
+        boolean partidaEncontrada = false;
+
+        // Comprueba si existe la sesión, esta activa o no y si existe la partida.
+        for(Sesion s: getSesiones()){
+            if (s.getIdSesion().equals(idSesion)){
+                encontrado = true;
+                if (s.isSesionCaducada()){
+                    isCaducado = true;
+                }
+                if (s.getPartida().getIdPartida().equals(idPartida)){
+                    partidaEncontrada = true;
+                }
+            }
+        }
+
+        if (encontrado){
+            if (isCaducado){
+                return Error.Sesion.CADUCADA;
+            } else {
+                if (partidaEncontrada){
+                    return Acierto.Partida.ENCONTRADA;
+                } else {
+                    return Error.Partida.NO_ENCONTRADA;
+                }
+            }
+        } else {
+            return Error.Sesion.NO_ENCONTRADA;
+        }
+    }
+
 
 }

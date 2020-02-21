@@ -1,6 +1,8 @@
 package main.java.utils;
 
 import main.java.modelos.Carta;
+import main.java.modelos.ResultadoPartida;
+import main.java.modelos.Usuario;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -15,12 +17,13 @@ public class MySQLHelper {
     private String password = "";
     private static Connection connection = null;
     private static ArrayList<Carta> cartas = null;
+    private static ArrayList<ResultadoPartida> resultados = null;
     /*
     TABLE cartas(id_carta integer PRIMARY KEY, marca varchar(50), modelo varchar(50), motor integer, potencia integer, velocidad integer, cilindros integer, rpm integer, consumo float);
     TABLE jugadores(nombre_usuario varchar(50) PRIMARY KEY, nombre varchar(50), appellidos varchar (50), pass varchar(100));
-    TABLE partidas(id_game FLOAT(50) PRIMARY KEY, jugador varchar(50), puntos_jugador integer, puntos_cpu integer, fecha_partida timestamp, FOREIGN KEY (jugador) REFERENCES jugadores (nombre_usuario));
-    TABLE manos_jugadas(id_carta1 varchar(50), id_carta2 varchar(50), caracteristica varchar(50), FOREING KEY id_carta1 REFERENCES jugadores (nombre_usuario), FOREING KEY id_carta2 REFERENCES jugadores (nombre_usuario);
-     */
+    TABLE partidas(id_partida varchar(50) PRIMARY KEY, jugador varchar(50), puntos_jugador integer, puntos_cpu integer, fecha_partida timestamp, FOREIGN KEY (jugador) REFERENCES jugadores (nombre_usuario));
+    TABLE manos_jugadas(id_carta1 integer, id_carta2 integer, caracteristica varchar(50), id_carta_ganadora integer, FOREIGN KEY (id_carta1) REFERENCES cartas (id_carta), FOREIGN KEY (id_carta2) REFERENCES cartas (id_carta), FOREIGN KEY (id_carta_ganadora) REFERENCES cartas (id_carta));
+    */
 
     private MySQLHelper(){
         try {
@@ -38,14 +41,14 @@ public class MySQLHelper {
         return connection;
     }
 
-    public static boolean login(String user, String pass){
+    /*public static boolean login(String user, String pass){
         final String query2 = "SELECT CASE WHEN EXISTS(SELECT * FROM jugadores WHERE nombre_usuario = ? AND pass = ?) THEN 1 ELSE 0 END AS result FROM jugadores";
         PreparedStatement preparedStatement;
         boolean isCorrecto = false;
         try {
             preparedStatement = getConnection().prepareStatement(query2);
             preparedStatement.setString(1, user);
-            preparedStatement.setString(2, Lib.encryptPassword(pass));
+            preparedStatement.setString(2, pass);
             ResultSet resultSet = preparedStatement.executeQuery();
             resultSet.first();
 
@@ -57,6 +60,26 @@ public class MySQLHelper {
             e.printStackTrace();
         }
         return isCorrecto;
+    }*/
+    public static Usuario login(String user, String pass){
+        final String query2 = "SELECT * FROM jugadores WHERE nombre_usuario = ? AND pass = ?";
+        Usuario usuario = null;
+        PreparedStatement preparedStatement;
+        boolean isCorrecto = false;
+        try {
+            preparedStatement = getConnection().prepareStatement(query2);
+            preparedStatement.setString(1, user);
+            preparedStatement.setString(2, pass);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            resultSet.first();
+
+            usuario = new Usuario(resultSet.getString("nombre_usuario")
+                    , resultSet.getString("nombre")
+                    , resultSet.getString("apellidos"));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return usuario;
     }
 
     public static int addJugador(String nombreUsuario, String nombre, String apellidos, String password){
@@ -81,6 +104,7 @@ public class MySQLHelper {
         }
     }
 
+    //TODO Implementar método para que se actualizen las cartas cuando se añada una nueva en la base de datos.
     public static ArrayList<Carta> getCartas(){
         if (cartas == null) {
             cartas = new ArrayList<>();
@@ -113,5 +137,61 @@ public class MySQLHelper {
 
         return null;
 
+    }
+
+    public static void insertarManoJugada(int idCarta1, int idCarta2, Enums.Caracteristica caracteristica, int idCartaGanadora){
+        final String query = " INSERT INTO manos_jugadas (id_carta1, id_carta2, caracteristica, id_carta_ganadora) VALUES (?, ?, ?, ?)";
+        PreparedStatement preparedStatement;
+
+        try {
+            preparedStatement = getConnection().prepareStatement(query);
+            preparedStatement.setInt(1, idCarta1);
+            preparedStatement.setInt(2, idCarta2);
+            preparedStatement.setString(3, caracteristica.name());
+            preparedStatement.setInt(4, idCartaGanadora);
+            preparedStatement.execute();
+        } catch (SQLIntegrityConstraintViolationException sqle){
+            sqle.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void insertarResultadoPartida(String idPartida, String nickJugador, int puntosJugador, int puntosCPU ){
+
+        final String query = " INSERT INTO partidas (id_partida, jugador, puntos_jugador, puntos_cpu) VALUES (?, ?, ?, ?)";
+        PreparedStatement preparedStatement;
+
+        try {
+            preparedStatement = getConnection().prepareStatement(query);
+            preparedStatement.setString(1, idPartida);
+            preparedStatement.setString(2, nickJugador);
+            preparedStatement.setInt(3, puntosJugador);
+            preparedStatement.setInt(4, puntosCPU);
+            preparedStatement.execute();
+        } catch (SQLIntegrityConstraintViolationException sqle){
+            sqle.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static ArrayList<ResultadoPartida> getResultadosPartidas(){
+        if(resultados == null){
+            resultados = new ArrayList<>();
+            PreparedStatement preparedStatement;
+            try {
+                preparedStatement = getConnection().prepareStatement("SELECT * FROM partidas");
+                ResultSet rs = preparedStatement.executeQuery();
+                while (rs.next())
+                    resultados.add(new ResultadoPartida(rs.getString("id_partida"), rs.getString("jugador"), rs.getInt("puntos_jugador"), rs.getInt("puntos_cpu"), rs.getDate("fecha_partida")));
+                rs.close();
+                preparedStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return resultados;
     }
 }

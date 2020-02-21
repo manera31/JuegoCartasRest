@@ -1,23 +1,20 @@
 package main.java.service;
 
+import com.google.gson.Gson;
+import main.java.utils.MySQLHelper;
+
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
+@Path("/crud")
 public class CRUDApi {
 
     @GET
     @Path("/carta")
     @Produces({MediaType.APPLICATION_JSON})
-    public void getCartas(String json) {
-
-    }
-
-    @GET
-    @Path("/carta")
-    @Consumes({MediaType.APPLICATION_JSON})
-    @Produces({MediaType.APPLICATION_JSON})
-    public void getCarta(String json) {
-
+    public String getCartas(String json) {
+        Gson g = new Gson();
+        return g.toJson(MySQLHelper.getCartas());
     }
 
     @POST
@@ -27,7 +24,7 @@ public class CRUDApi {
 
     }
 
-    @GET
+    @PUT
     @Path("/carta")
     @Consumes({MediaType.APPLICATION_JSON})
     public void updateCarta(String json) {
