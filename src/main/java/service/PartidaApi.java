@@ -180,7 +180,7 @@ public class PartidaApi extends ResourceConfig {
         int idCarta = envioJugarCarta.getIdCarta();
         Enums.Caracteristica caracteristica = envioJugarCarta.getCaracteristica();
 
-        RespuestaGanadorMano respuesta = null;
+        RespuestaResultadoMano respuesta = null;
         for(Sesion s: getSesiones()){
             if (s.getIdSesion().equals(idSesion) && !s.isSesionCaducada() && s.getPartida().getIdPartida().equals(idPartida)){
                 respuesta = s.getPartida().compararCartaJugador(idCarta, caracteristica);
@@ -208,6 +208,26 @@ public class PartidaApi extends ResourceConfig {
         }
 
         return getGSON().toJson(respuesta);
+    }
+
+    @GET
+    @Path("/sesiones")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String sesiones(){
+        return getGSON().toJson(getSesiones());
+    }
+
+    @POST
+    @Path("/cerrarSesion")
+    @Consumes({MediaType.APPLICATION_JSON})
+    public void cerrarSesion(String jsonIdSesion){
+        String idSesion = getGSON().fromJson(jsonIdSesion, String.class);
+
+        for(Sesion s: getSesiones()){
+            if (s.getIdSesion().equals(idSesion)){
+                s.setSesionCaducada(true);
+            }
+        }
     }
 
     private int comprobarSesion(String idSesion){

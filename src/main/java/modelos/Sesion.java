@@ -27,6 +27,10 @@ public class Sesion {
         return sesionCaducada;
     }
 
+    public void setSesionCaducada(boolean sesionCaducada) {
+        this.sesionCaducada = sesionCaducada;
+    }
+
     public Partida getPartida() {
         return partida;
     }

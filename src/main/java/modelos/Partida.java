@@ -1,7 +1,7 @@
 package main.java.modelos;
 
 import main.java.respuestas.RespuestaJugarCartaCPU;
-import main.java.respuestas.RespuestaGanadorMano;
+import main.java.respuestas.RespuestaResultadoMano;
 import main.java.utils.Enums;
 import main.java.utils.Lib;
 import main.java.utils.MySQLHelper;
@@ -88,7 +88,7 @@ public class Partida {
         return empieza;
     }
 
-    public RespuestaGanadorMano compararCartaJugador(int idCartaJugador, Enums.Caracteristica caracteristica){
+    public RespuestaResultadoMano compararCartaJugador(int idCartaJugador, Enums.Caracteristica caracteristica){
         int idCartaGanadora = -1;
 
         Carta cartaCPU;
@@ -185,11 +185,12 @@ public class Partida {
             manoActual++;
         } else {
             MySQLHelper.insertarResultadoPartida(idPartida, usuario.getNick(), contadorManosGanadasJugador, contadorManosGanadasCPU);
+            return new RespuestaResultadoMano(idCartaJugador, cartaCPU.getId(), caracteristica, idCartaGanadora, contadorManosGanadasJugador, contadorManosGanadasCPU);
         }
 
         // 0 si es empate
         // idCarta si ha ganado
-        return new RespuestaGanadorMano(idCartaJugador, cartaCPU.getId(), caracteristica, idCartaGanadora);
+        return new RespuestaResultadoMano(idCartaJugador, cartaCPU.getId(), caracteristica, idCartaGanadora);
     }
 
     public RespuestaJugarCartaCPU jugarCartaCPU(){
