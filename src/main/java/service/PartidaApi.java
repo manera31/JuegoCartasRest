@@ -6,7 +6,6 @@ import main.java.modelos.Sesion;
 import main.java.modelos.Usuario;
 import main.java.respuestas.*;
 import main.java.utils.*;
-import main.java.utils.Error;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.ws.rs.*;
@@ -63,19 +62,19 @@ public class PartidaApi extends ResourceConfig {
 
             if (estaConectado){
                 // Si el usuario tiene una sesión activa le pasamos la idSesion que tiene y una alerta para indicar que el usuario ya estaba conectado.
-                respuesta = new RespuestaLogin(sesionAuxiliar.getIdSesion(), usuario, Alerta.Login.YA_CONECTADO);
+                respuesta = new RespuestaLogin(sesionAuxiliar.getIdSesion(), usuario, Control.Login.YA_CONECTADO);
             } else {
                 // Crea un id único.
                 String idSesion = Lib.getUUID();
                 // Crea la respuesta.
-                respuesta = new RespuestaLogin(idSesion, usuario, Acierto.Login.ENCONTRADO);
+                respuesta = new RespuestaLogin(idSesion, usuario, Control.Login.ENCONTRADO);
                 // Añade el id de sesión al array de sesiones.
                 getSesiones().add(new Sesion(idSesion, usuario));
             }
 
         } else {
             // Si no coincide el usuario y la contraseña en la base de datos envia un mensaje de error.
-            respuesta = new RespuestaLogin(Error.Login.USUARIO_PASS_INCORRECTO);
+            respuesta = new RespuestaLogin(Control.Login.USUARIO_PASS_INCORRECTO);
         }
 
         return getGSON().toJson(respuesta);
@@ -97,15 +96,15 @@ public class PartidaApi extends ResourceConfig {
         RespuestaNuevoJuego respuesta = null;
 
         switch (respuestaBusqueda){
-            case Error.Sesion.CADUCADA:
+            case Control.Sesion.CADUCADA:
                 // Si la sesión existe pero esta caducada envia un mensaje de error.
-                respuesta = new RespuestaNuevoJuego(Error.Sesion.CADUCADA);
+                respuesta = new RespuestaNuevoJuego(Control.Sesion.CADUCADA);
                 break;
-            case Error.Sesion.NO_ENCONTRADA:
+            case Control.Sesion.NO_ENCONTRADA:
                 // Si la sesion no existe evia un mensaje de error.
-                respuesta = new RespuestaNuevoJuego(Error.Sesion.NO_ENCONTRADA);
+                respuesta = new RespuestaNuevoJuego(Control.Sesion.NO_ENCONTRADA);
                 break;
-            case Acierto.Sesion.ENCONTRADO:
+            case Control.Sesion.ENCONTRADA:
                 // Si la sesion existe y NO esta caducada.
                 // Busca la sesión.
                 for (Sesion s: getSesiones()){
@@ -117,7 +116,7 @@ public class PartidaApi extends ResourceConfig {
                         cartasJugador = s.getPartida().repartirCartas();
 
                         // Crea la respuesta pasandole la idPartida que se acaba de crear y las cartas del jugador.
-                        respuesta = new RespuestaNuevoJuego(idPartida, cartasJugador, Acierto.Sesion.ENCONTRADO);
+                        respuesta = new RespuestaNuevoJuego(idPartida, cartasJugador, Control.Sesion.ENCONTRADA);
                     }
                 }
                 break;
@@ -139,28 +138,28 @@ public class PartidaApi extends ResourceConfig {
         int respuestaBusqueda = comprobarPartida(idSesion, idPartida);
 
         RespuestaSorteo respuesta = null;
-        Enums.PrimeroEnSacar empieza = null;
+        Enums.Turno empieza = null;
 
         switch (respuestaBusqueda){
-            case Error.Sesion.CADUCADA:
+            case Control.Sesion.CADUCADA:
                 // Si la sesión existe pero esta caducada envia un mensaje de error.
-                respuesta = new RespuestaSorteo(Error.Sesion.CADUCADA);
+                respuesta = new RespuestaSorteo(Control.Sesion.CADUCADA);
                 break;
-            case Error.Sesion.NO_ENCONTRADA:
+            case Control.Sesion.NO_ENCONTRADA:
                 // Si la sesion no existe evia un mensaje de error.
-                respuesta = new RespuestaSorteo(Error.Sesion.NO_ENCONTRADA);
+                respuesta = new RespuestaSorteo(Control.Sesion.NO_ENCONTRADA);
                 break;
-            case Error.Partida.NO_ENCONTRADA:
-                respuesta = new RespuestaSorteo(Error.Partida.NO_ENCONTRADA);
+            case Control.Partida.NO_ENCONTRADA:
+                respuesta = new RespuestaSorteo(Control.Partida.NO_ENCONTRADA);
                 break;
-            case Acierto.Partida.ENCONTRADA:
+            case Control.Partida.ENCONTRADA:
                 for(Sesion s: getSesiones()){
                     if (s.getIdSesion().equals(idSesion) && !s.isSesionCaducada() && s.getPartida().getIdPartida().equals(idPartida)){
                         // Si los datos coinciden sortea quien empieza. El metodo devuelve un enum (Jugador o CPU).
                         empieza = s.getPartida().sortearInicio();
 
                         // Crea la respuesta a partir de quien empieza.
-                        respuesta = new RespuestaSorteo(empieza);
+                        respuesta = new RespuestaSorteo(empieza, Control.Partida.ENCONTRADA);
                     }
                 }
                 break;
@@ -181,7 +180,7 @@ public class PartidaApi extends ResourceConfig {
         int idCarta = envioJugarCarta.getIdCarta();
         Enums.Caracteristica caracteristica = envioJugarCarta.getCaracteristica();
 
-        RespuestaJugarCartaJugador respuesta = null;
+        RespuestaGanadorMano respuesta = null;
         for(Sesion s: getSesiones()){
             if (s.getIdSesion().equals(idSesion) && !s.isSesionCaducada() && s.getPartida().getIdPartida().equals(idPartida)){
                 respuesta = s.getPartida().compararCartaJugador(idCarta, caracteristica);
@@ -225,12 +224,12 @@ public class PartidaApi extends ResourceConfig {
 
         if (encontrado){
             if (isCaducado){
-                return Error.Sesion.CADUCADA;
+                return Control.Sesion.CADUCADA;
             } else {
-                return Acierto.Sesion.ENCONTRADO;
+                return Control.Sesion.ENCONTRADA;
             }
         } else {
-            return Error.Sesion.NO_ENCONTRADA;
+            return Control.Sesion.NO_ENCONTRADA;
         }
     }
     private int comprobarPartida(String idSesion, String idPartida){
@@ -253,16 +252,16 @@ public class PartidaApi extends ResourceConfig {
 
         if (encontrado){
             if (isCaducado){
-                return Error.Sesion.CADUCADA;
+                return Control.Sesion.CADUCADA;
             } else {
                 if (partidaEncontrada){
-                    return Acierto.Partida.ENCONTRADA;
+                    return Control.Partida.ENCONTRADA;
                 } else {
-                    return Error.Partida.NO_ENCONTRADA;
+                    return Control.Partida.NO_ENCONTRADA;
                 }
             }
         } else {
-            return Error.Sesion.NO_ENCONTRADA;
+            return Control.Sesion.NO_ENCONTRADA;
         }
     }
 

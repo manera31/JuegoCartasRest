@@ -1,7 +1,7 @@
 package main.java.modelos;
 
 import main.java.respuestas.RespuestaJugarCartaCPU;
-import main.java.respuestas.RespuestaJugarCartaJugador;
+import main.java.respuestas.RespuestaGanadorMano;
 import main.java.utils.Enums;
 import main.java.utils.Lib;
 import main.java.utils.MySQLHelper;
@@ -14,8 +14,8 @@ public class Partida {
     public static int NUMERO_CARTAS_POR_JUGADOR = 6;
     private Carta[] cartasCPU;
     private int manoActual;
-    private Enums.PrimeroEnSacar empieza;
-    private RespuestaJugarCartaCPU cartaJugadaCPU;
+    private Enums.Turno empieza;
+    private int idCartaJugadaCPU;
     private int contadorManosGanadasJugador;
     private int contadorManosGanadasCPU;
 
@@ -25,7 +25,7 @@ public class Partida {
         cartasCPU = null;
         manoActual = 0;
         empieza = null;
-        cartaJugadaCPU = null;
+        idCartaJugadaCPU = 0;
         contadorManosGanadasJugador = 0;
         contadorManosGanadasCPU = 0;
     }
@@ -78,29 +78,29 @@ public class Partida {
         return cartasJugador;
     }
 
-    public Enums.PrimeroEnSacar sortearInicio(){
+    public Enums.Turno sortearInicio(){
         int random = Lib.getRandom(1, 0);
         if(random == 1){
-            empieza = Enums.PrimeroEnSacar.Jugador;
+            empieza = Enums.Turno.Jugador;
         } else {
-            empieza = Enums.PrimeroEnSacar.CPU;
+            empieza = Enums.Turno.CPU;
         }
         return empieza;
     }
 
-    public RespuestaJugarCartaJugador compararCartaJugador(int idCartaJugador, Enums.Caracteristica caracteristica){
+    public RespuestaGanadorMano compararCartaJugador(int idCartaJugador, Enums.Caracteristica caracteristica){
         int idCartaGanadora = -1;
 
         Carta cartaCPU;
-        if (cartaJugadaCPU == null) {
+        if (idCartaJugadaCPU == 0) {
             // Elige una carta aleatoria de la cpu.
             cartaCPU = getCartaRandomCPU();
         } else {
             // Busca la carta que ha jugado ya la CPU
-            cartaCPU = MySQLHelper.buscarCarta(cartaJugadaCPU.getIdCarta());
+            cartaCPU = MySQLHelper.buscarCarta(idCartaJugadaCPU);
 
             // La igualamos a null para que cuando se llame otra vez elija una carta aleatoria.
-            cartaJugadaCPU = null;
+            idCartaJugadaCPU = 0;
         }
 
         // Ubica la carta del jugador.
@@ -189,15 +189,15 @@ public class Partida {
 
         // 0 si es empate
         // idCarta si ha ganado
-        return new RespuestaJugarCartaJugador(idCartaJugador, cartaCPU.getId(), caracteristica, idCartaGanadora);
+        return new RespuestaGanadorMano(idCartaJugador, cartaCPU.getId(), caracteristica, idCartaGanadora);
     }
 
     public RespuestaJugarCartaCPU jugarCartaCPU(){
         Carta cartaCPU = getCartaRandomCPU();
         Enums.Caracteristica caracteristicaCPU = getRandomCaracteristica();
 
-        RespuestaJugarCartaCPU respuesta =  new RespuestaJugarCartaCPU(cartaCPU.getId(), caracteristicaCPU);
-        cartaJugadaCPU = respuesta;
+        RespuestaJugarCartaCPU respuesta =  new RespuestaJugarCartaCPU(caracteristicaCPU);
+        idCartaJugadaCPU = cartaCPU.getId();
 
         return respuesta;
     }

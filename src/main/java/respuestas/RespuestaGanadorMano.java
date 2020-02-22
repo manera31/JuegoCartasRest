@@ -2,13 +2,13 @@ package main.java.respuestas;
 
 import main.java.utils.Enums;
 
-public class RespuestaJugarCartaJugador {
+public class RespuestaGanadorMano {
     private int idCartaJugador;
     private int idCartaCPU;
     private Enums.Caracteristica caracteristica;
     private int idCartaGanadora;
 
-    public RespuestaJugarCartaJugador(int idCartaJugador, int idCartaCPU, Enums.Caracteristica caracteristica, int idCartaGanadora) {
+    public RespuestaGanadorMano(int idCartaJugador, int idCartaCPU, Enums.Caracteristica caracteristica, int idCartaGanadora) {
         this.idCartaJugador = idCartaJugador;
         this.idCartaCPU = idCartaCPU;
         this.caracteristica = caracteristica;
