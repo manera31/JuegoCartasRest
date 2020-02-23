@@ -1,6 +1,7 @@
 package main.java.utils;
 
 import main.java.modelos.Carta;
+import main.java.modelos.ManoJugada;
 import main.java.modelos.ResultadoPartida;
 import main.java.modelos.Usuario;
 
@@ -17,7 +18,6 @@ public class MySQLHelper {
     private String password = "";
     private static Connection connection = null;
     private static ArrayList<Carta> cartas = null;
-    private static ArrayList<ResultadoPartida> resultados = null;
     /*
     TABLE cartas(id_carta integer PRIMARY KEY, marca varchar(50), modelo varchar(50), motor integer, potencia integer, velocidad integer, cilindros integer, rpm integer, consumo float);
     TABLE jugadores(nombre_usuario varchar(50) PRIMARY KEY, nombre varchar(50), appellidos varchar (50), pass varchar(100));
@@ -82,25 +82,24 @@ public class MySQLHelper {
         return usuario;
     }
 
-    public static int addJugador(String nombreUsuario, String nombre, String apellidos, String password){
+    public static int addUsuario(Usuario usuario){
         final String query = " INSERT INTO jugadores (nombre_usuario, nombre, apellidos, pass) VALUES (?, ?, ?, ?)";
         PreparedStatement preparedStatement;
-        boolean isCorrecto = false;
 
         try {
             preparedStatement = getConnection().prepareStatement(query);
-            preparedStatement.setString(1, nombreUsuario);
-            preparedStatement.setString(2, nombre);
-            preparedStatement.setString(3, apellidos);
-            preparedStatement.setString(4, Lib.encryptPassword(password));
+            preparedStatement.setString(1, usuario.getNick());
+            preparedStatement.setString(2, usuario.getNombre());
+            preparedStatement.setString(3, usuario.getApellidos());
+            preparedStatement.setString(4, usuario.getPass());
             preparedStatement.execute();
-            return 0;
+            return Control.CRUD.USUARIO_ANADIDO;
         } catch (SQLIntegrityConstraintViolationException sqle){
             sqle.printStackTrace();
-            return 1;
+            return Control.CRUD.USUARIO_EXISTE;
         } catch (SQLException e) {
             e.printStackTrace();
-            return -1;
+            return Control.CRUD.USUARIO_FALLO_GENERAL;
         }
     }
 
@@ -177,21 +176,36 @@ public class MySQLHelper {
     }
 
     public static ArrayList<ResultadoPartida> getResultadosPartidas(){
-        if(resultados == null){
-            resultados = new ArrayList<>();
-            PreparedStatement preparedStatement;
-            try {
-                preparedStatement = getConnection().prepareStatement("SELECT * FROM partidas");
-                ResultSet rs = preparedStatement.executeQuery();
-                while (rs.next())
-                    resultados.add(new ResultadoPartida(rs.getString("id_partida"), rs.getString("jugador"), rs.getInt("puntos_jugador"), rs.getInt("puntos_cpu"), rs.getDate("fecha_partida")));
-                rs.close();
-                preparedStatement.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        ArrayList<ResultadoPartida> resultados = new ArrayList<>();
+        PreparedStatement preparedStatement;
+        try {
+            preparedStatement = getConnection().prepareStatement("SELECT * FROM partidas");
+            ResultSet rs = preparedStatement.executeQuery();
+            while (rs.next())
+                resultados.add(new ResultadoPartida(rs.getString("id_partida"), rs.getString("jugador"), rs.getInt("puntos_jugador"), rs.getInt("puntos_cpu"), rs.getDate("fecha_partida")));
+            rs.close();
+            preparedStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return resultados;
+    }
+
+    public static ArrayList<ManoJugada> getManosJugadas(){
+        ArrayList<ManoJugada> manosJugadas = new ArrayList<>();
+        PreparedStatement preparedStatement;
+        try {
+            preparedStatement = getConnection().prepareStatement("SELECT id_carta1, id_carta2, id_carta_ganadora FROM manos_jugadas");
+            ResultSet rs = preparedStatement.executeQuery();
+            while (rs.next())
+                manosJugadas.add(new ManoJugada(rs.getInt("id_carta1"), rs.getInt("id_carta2"), rs.getInt("id_carta_ganadora")));
+            rs.close();
+            preparedStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return manosJugadas;
     }
 }

@@ -1,9 +1,7 @@
 package main.java.service;
 
 import com.google.gson.Gson;
-import main.java.modelos.EstadisticaUsuario;
-import main.java.modelos.ResultadoPartida;
-import main.java.modelos.Usuario;
+import main.java.modelos.*;
 import main.java.utils.MySQLHelper;
 
 import javax.ws.rs.Consumes;
@@ -70,7 +68,62 @@ public class EstadisticasApi {
     @GET
     @Path("/winrateCartas")
     @Produces({MediaType.APPLICATION_JSON})
-    public void getWinrateCartas(String json) {
+    public String getWinrateCartas(String json) {
 
+        ArrayList<ManoJugada> manoJugadas = MySQLHelper.getManosJugadas();
+
+        HashMap<Integer, EstadisticaCarta> map = new HashMap<>();
+
+        for (Carta c: MySQLHelper.getCartas()){
+            if (!map.containsKey(c.getId())){
+                map.put(c.getId(), new EstadisticaCarta(c.getId()));
+            }
+        }
+
+        for (ManoJugada m: manoJugadas){
+
+            if (m.getIdCartaGanadora() != 0){
+                if (m.getIdCartaGanadora() == m.getIdCarta1()){
+                    map.get(m.getIdCarta1()).setGanadas();
+                    map.get(m.getIdCarta2()).setPerdidas();
+
+                } else {
+                    map.get(m.getIdCarta1()).setPerdidas();
+                    map.get(m.getIdCarta2()).setGanadas();
+                }
+
+            } else {
+                map.get(m.getIdCarta1()).setEmpatadas();
+                map.get(m.getIdCarta2()).setEmpatadas();
+            }
+
+        }
+
+        ArrayList<EstadisticaCarta> estadisticaCartas = new ArrayList<>();
+
+        for (Map.Entry<Integer, EstadisticaCarta> e: map.entrySet()){
+            estadisticaCartas.add(e.getValue());
+        }
+
+        for (EstadisticaCarta e: estadisticaCartas){
+            double sumaPartidas = e.getGanadas() + e.getPerdidas() + e.getEmpatadas();
+            double winrate;
+            try {
+                winrate = e.getGanadas() / sumaPartidas;
+            } catch (ArithmeticException ae){
+                winrate = 0;
+            }
+            e.setWinrate(winrate);
+        }
+
+        Collections.sort(estadisticaCartas, new Comparator<EstadisticaCarta>() {
+            @Override
+            public int compare(EstadisticaCarta o1, EstadisticaCarta o2) {
+                return Double.compare(o2.getWinrate(), o1.getWinrate());
+            }
+        });
+
+        Gson gson = new Gson();
+        return gson.toJson(estadisticaCartas);
     }
 }
