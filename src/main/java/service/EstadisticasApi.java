@@ -60,8 +60,7 @@ public class EstadisticasApi {
         for (int i = 0 ; i < numeroJugadores ; i++)
             arrayList.add(estadisticas.get(i));
 
-        Gson gson = new Gson();
-        return gson.toJson(arrayList);
+        return PartidaApi.getGSON().toJson(arrayList);
 
     }
 
@@ -123,7 +122,6 @@ public class EstadisticasApi {
             }
         });
 
-        Gson gson = new Gson();
-        return gson.toJson(estadisticaCartas);
+        return PartidaApi.getGSON().toJson(estadisticaCartas);
     }
 }

@@ -12,35 +12,52 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 
+/**
+ * Clase para almacenar todos los endpoints relacionados con la partida.
+ * @author Joan Manera Perez
+ */
 @Path("/partida")
 public class PartidaApi extends ResourceConfig {
     private static Gson g = null;
     private static ArrayList<Sesion> sesiones = null;
 
-    private static Gson getGSON(){
+    /**
+     * Sigleton Gson.
+     * @return gson
+     */
+    public static Gson getGSON(){
         if (g == null){
             g = new Gson();
         }
         return g;
     }
 
-    private static  ArrayList<Sesion> getSesiones(){
+    /**
+     * Singleton Sesiones.
+     * @return sesiones
+     */
+    public static  ArrayList<Sesion> getSesiones(){
         if (sesiones == null){
             sesiones = new ArrayList<>();
         }
         return sesiones;
     }
 
+    /**
+     * Enpoint para iniciar sesión en el servidor.
+     * @param userPass
+     * @return idSesion
+     */
     @POST
     @Path("/login")
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public String login(String json){
+    public String login(String userPass){
 
         // Separa el usuario y la contraseña que el clente ha pasado.
-        String userPass = getGSON().fromJson(json, String.class);
-        String user = userPass.split(":")[0];
-        String pass = userPass.split(":")[1];
+        String userPassAux = getGSON().fromJson(userPass, String.class);
+        String user = userPassAux.split(":")[0];
+        String pass = userPassAux.split(":")[1];
 
         RespuestaLogin respuesta;
 
@@ -80,14 +97,20 @@ public class PartidaApi extends ResourceConfig {
         return getGSON().toJson(respuesta);
     }
 
+
+    /**
+     * Endpoint para crear una nueva partida.
+     * @param idSesionJson
+     * @return idPartida
+     */
     @POST
     @Path("/crearJuego")
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     // Siempre crea una nueva partida, exista o no una en curso.
-    public String nuevoJuego(String json){
+    public String nuevoJuego(String idSesionJson){
         // Cargamos la id de sesión que pasa el cliente.
-        String idSesion = getGSON().fromJson(json, String.class);
+        String idSesion = getGSON().fromJson(idSesionJson, String.class);
 
         int respuestaBusqueda = comprobarSesion(idSesion);
 
@@ -125,15 +148,21 @@ public class PartidaApi extends ResourceConfig {
         return getGSON().toJson(respuesta);
     }
 
+
+    /**
+     * Endpoint para sortear quien empieza tirando la primera carta.
+     * @param idSesionPartida
+     * @return jugador/cpu
+     */
     @POST
     @Path("/sortearInicio")
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public String sortearInicio(String json){
+    public String sortearInicio(String idSesionPartida){
         // Separa la idSesion y la idPartida.
-        String idSesionPartida = getGSON().fromJson(json, String.class);
-        String idSesion = idSesionPartida.split(":")[0];
-        String idPartida = idSesionPartida.split(":")[1];
+        String idSesionPartidaAux = getGSON().fromJson(idSesionPartida, String.class);
+        String idSesion = idSesionPartidaAux.split(":")[0];
+        String idPartida = idSesionPartidaAux.split(":")[1];
 
         int respuestaBusqueda = comprobarPartida(idSesion, idPartida);
 
@@ -168,13 +197,18 @@ public class PartidaApi extends ResourceConfig {
         return getGSON().toJson(respuesta);
     }
 
+    /**
+     * Endponit para que el cliente envie su carta o su carta y su característica.
+     * @param idSesionPartida
+     * @return resultadoMano
+     */
     @POST
     @Path("/jugarCarta")
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public String jugarCarta(String jsonEnvioJugarCarta){
+    public String jugarCarta(String idSesionPartida){
         // Separamos la información.
-        EnvioJugarCarta envioJugarCarta = getGSON().fromJson(jsonEnvioJugarCarta, EnvioJugarCarta.class);
+        EnvioJugarCarta envioJugarCarta = getGSON().fromJson(idSesionPartida, EnvioJugarCarta.class);
         String idSesion = envioJugarCarta.getIdSesion();
         String idPartida = envioJugarCarta.getIdPartida();
         int idCarta = envioJugarCarta.getIdCarta();
@@ -190,6 +224,11 @@ public class PartidaApi extends ResourceConfig {
         return getGSON().toJson(respuesta);
     }
 
+    /**
+     * Endpoint para informar al servidor que el cliente esta listo para recibir una carta de la CPU.
+     * @param json
+     * @return caracteristicaCPU
+     */
     @POST
     @Path("/clienteListo")
     @Consumes({MediaType.APPLICATION_JSON})
@@ -210,13 +249,11 @@ public class PartidaApi extends ResourceConfig {
         return getGSON().toJson(respuesta);
     }
 
-    @GET
-    @Path("/sesiones")
-    @Produces({MediaType.APPLICATION_JSON})
-    public String sesiones(){
-        return getGSON().toJson(getSesiones());
-    }
 
+    /**
+     * Endponit para que el servidor cierre la sesión del cliente.
+     * @param jsonIdSesion
+     */
     @POST
     @Path("/cerrarSesion")
     @Consumes({MediaType.APPLICATION_JSON})
@@ -230,6 +267,11 @@ public class PartidaApi extends ResourceConfig {
         }
     }
 
+    /**
+     * Comprueba si existe la sesion o si esta caducada.
+     * @param idSesion
+     * @return codigoError
+     */
     private int comprobarSesion(String idSesion){
         boolean encontrado = false;
         boolean isCaducado = false;
@@ -252,6 +294,13 @@ public class PartidaApi extends ResourceConfig {
             return Control.Sesion.NO_ENCONTRADA;
         }
     }
+
+    /**
+     * Comprueba si existe la sesion y la partida
+     * @param idSesion
+     * @param idPartida
+     * @return codigoError
+     */
     private int comprobarPartida(String idSesion, String idPartida){
         boolean encontrado = false;
         boolean isCaducado = false;
