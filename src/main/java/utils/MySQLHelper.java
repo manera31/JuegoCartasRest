@@ -8,6 +8,10 @@ import main.java.modelos.Usuario;
 import java.sql.*;
 import java.util.ArrayList;
 
+/**
+ * Clase para controlar las entradas y las salidas de la base de datos.
+ * @author Joan Manera Perez
+ */
 public class MySQLHelper {
     private String driver = "com.mysql.cj.jdbc.Driver";
     private String database = "autocartas";
@@ -25,6 +29,9 @@ public class MySQLHelper {
     TABLE manos_jugadas(id_carta1 integer, id_carta2 integer, caracteristica varchar(50), id_carta_ganadora integer, FOREIGN KEY (id_carta1) REFERENCES cartas (id_carta), FOREIGN KEY (id_carta2) REFERENCES cartas (id_carta), FOREIGN KEY (id_carta_ganadora) REFERENCES cartas (id_carta));
     */
 
+    /**
+     * Constructor de la clase.
+     */
     private MySQLHelper(){
         try {
             Class.forName(driver);
@@ -34,6 +41,10 @@ public class MySQLHelper {
         }
     }
 
+    /**
+     * Conexión a la base de datos Singleton.
+     * @return
+     */
     public static Connection getConnection(){
         if (connection == null){
             new MySQLHelper();
@@ -41,31 +52,17 @@ public class MySQLHelper {
         return connection;
     }
 
-    /*public static boolean login(String user, String pass){
-        final String query2 = "SELECT CASE WHEN EXISTS(SELECT * FROM jugadores WHERE nombre_usuario = ? AND pass = ?) THEN 1 ELSE 0 END AS result FROM jugadores";
-        PreparedStatement preparedStatement;
-        boolean isCorrecto = false;
-        try {
-            preparedStatement = getConnection().prepareStatement(query2);
-            preparedStatement.setString(1, user);
-            preparedStatement.setString(2, pass);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            resultSet.first();
-
-            int result = resultSet.getInt("result");
-            if (result == 1){
-                isCorrecto = true;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return isCorrecto;
-    }*/
+    /**
+     * Comprueba el usuario y la contraseña en la base de datos.
+     * @param user
+     * @param pass
+     * @return usuario/null
+     */
     public static Usuario login(String user, String pass){
         final String query2 = "SELECT * FROM jugadores WHERE nombre_usuario = ? AND pass = ?";
         Usuario usuario = null;
         PreparedStatement preparedStatement;
-        boolean isCorrecto = false;
+
         try {
             preparedStatement = getConnection().prepareStatement(query2);
             preparedStatement.setString(1, user);
@@ -82,6 +79,11 @@ public class MySQLHelper {
         return usuario;
     }
 
+    /**
+     * Crea un usuario en la base de datos.
+     * @param usuario
+     * @return codigoError
+     */
     public static int addUsuario(Usuario usuario){
         final String query = " INSERT INTO jugadores (nombre_usuario, nombre, apellidos, pass) VALUES (?, ?, ?, ?)";
         PreparedStatement preparedStatement;
@@ -103,7 +105,10 @@ public class MySQLHelper {
         }
     }
 
-    //TODO Implementar método para que se actualizen las cartas cuando se añada una nueva en la base de datos.
+    /**
+     * Busca las cartas de la base de datos.
+     * @return cartas
+     */
     public static ArrayList<Carta> getCartas(){
         if (cartas == null) {
             cartas = new ArrayList<>();
@@ -126,6 +131,11 @@ public class MySQLHelper {
         return cartas;
     }
 
+    /**
+     * Busca una carta entre todas las cartas.
+     * @param idABuscar
+     * @return carta
+     */
     public static Carta buscarCarta(int idABuscar){
 
         for (Carta c: getCartas()){
@@ -138,6 +148,13 @@ public class MySQLHelper {
 
     }
 
+    /**
+     * Inserta la mano jugada en la base de datos.
+     * @param idCarta1
+     * @param idCarta2
+     * @param caracteristica
+     * @param idCartaGanadora
+     */
     public static void insertarManoJugada(int idCarta1, int idCarta2, Enums.Caracteristica caracteristica, int idCartaGanadora){
         final String query = " INSERT INTO manos_jugadas (id_carta1, id_carta2, caracteristica, id_carta_ganadora) VALUES (?, ?, ?, ?)";
         PreparedStatement preparedStatement;
@@ -156,6 +173,13 @@ public class MySQLHelper {
         }
     }
 
+    /**
+     * Inserta el resultado de la partida en la base de datos.
+     * @param idPartida
+     * @param nickJugador
+     * @param puntosJugador
+     * @param puntosCPU
+     */
     public static void insertarResultadoPartida(String idPartida, String nickJugador, int puntosJugador, int puntosCPU ){
 
         final String query = " INSERT INTO partidas (id_partida, jugador, puntos_jugador, puntos_cpu) VALUES (?, ?, ?, ?)";
@@ -175,6 +199,10 @@ public class MySQLHelper {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public static ArrayList<ResultadoPartida> getResultadosPartidas(){
         ArrayList<ResultadoPartida> resultados = new ArrayList<>();
         PreparedStatement preparedStatement;

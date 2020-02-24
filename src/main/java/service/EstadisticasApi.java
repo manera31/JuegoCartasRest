@@ -11,8 +11,18 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.util.*;
 
+/**
+ * Clase para almacenar todos los edndpoints relacionados con las estadísticas.
+ * @author Joan Manera Perez
+ */
 @Path("/estadisticas")
 public class EstadisticasApi {
+
+    /**
+     * Endpoint para calcular el ranking de los 5 mejores jugadores.
+     * @param json
+     * @return top 5 jugadores con mas partidas ganadas
+     */
     @GET
     @Path("/ranking")
     @Produces({MediaType.APPLICATION_JSON})
@@ -64,6 +74,11 @@ public class EstadisticasApi {
 
     }
 
+    /**
+     * Endpoint para calcular el winrate de las cartas
+     * @param json
+     * @return cartas ordenadas por winrate
+     */
     @GET
     @Path("/winrateCartas")
     @Produces({MediaType.APPLICATION_JSON})

@@ -35,6 +35,7 @@ public abstract class Control {
     }
 
     /**
+     *
      * Controla los estados de crud.
      * @author Joan Manera Perez
      */
